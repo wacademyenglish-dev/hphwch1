@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>The Magic Tome | Mobile Spellbook</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Caveat:wght@700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-lofi: #0f0c29;      
+            --bg-panel: #1e1b4b;     
+            --bg-paper: #2e1065;     
+            --accent-amber: #fbbf24; 
+            --accent-matcha: #34d399;
+            --accent-rose: #f43f5e;
+            --accent-purple: #c084fc;  
+            --text-main: #fef3c7;    
+            --text-dark: #451a03;    
+            --text-muted: #a78bfa;   
+            --border-soft: rgba(251, 191, 36, 0.2);
+        }
+
+        body { 
+            font-family: 'Outfit', sans-serif; 
+            background-color: #000; 
+            color: var(--text-main);
+            display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .font-ui { font-family: 'Outfit', sans-serif; }
+        .font-magic { font-family: 'Playfair Display', serif; }
+        .font-handwriting { font-family: 'Caveat', cursive; }
+
+        #mobile-app {
+            width: 100%; max-width: 430px; 
+            height: 100vh; max-height: 932px;
+            background-color: var(--bg-lofi);
+            position: relative; display: flex; flex-direction: column; overflow: hidden;
+            box-shadow: 0 0 50px rgba(192, 132, 252, 0.15); 
+            background-image: radial-gradient(circle at 50% 10%, rgba(251, 191, 36, 0.05) 0%, transparent 60%);
+        }
+
+        header { flex-shrink: 0; background: rgba(15, 12, 41, 0.95); backdrop-filter: blur(10px); z-index: 50; border-bottom: 1px solid var(--border-soft); }
+        main { flex-grow: 1; overflow-y: auto; padding: 1.5rem; position: relative; }
+
+        .progress-track { width: 100%; height: 6px; background: rgba(0,0,0,0.3); border-radius: 3px; overflow: hidden; margin-top: 15px; }
+        .progress-fill { height: 100%; background: var(--accent-amber); transition: width 0.3s ease; box-shadow: 0 0 8px rgba(251, 191, 36, 0.6); }
+
+        .question-card { background: var(--bg-panel); border: 1px solid var(--border-soft); border-radius: 12px; padding: 1.5rem; animation: slideIn 0.3s ease forwards; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5); }
+        .opt-btn { width: 100%; text-align: left; background: var(--bg-lofi); border: 1px solid var(--border-soft); padding: 1.2rem 1rem; border-radius: 8px; margin-bottom: 0.75rem; font-family: 'Playfair Display', serif; font-weight: 600; font-size: 1.1rem; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; color: var(--accent-amber); }
+        .opt-btn:active { transform: scale(0.98); }
+        .opt-btn.selected-correct { border-color: var(--accent-matcha); background: rgba(52, 211, 153, 0.15); color: var(--accent-matcha); }
+        .opt-btn.selected-error { border-color: var(--accent-rose); background: rgba(244, 63, 94, 0.15); color: var(--accent-rose); }
+
+        .btn-primary { width: 100%; background: linear-gradient(135deg, #f59e0b, #fbbf24); color: var(--text-dark); padding: 1rem; border-radius: 8px; font-family: 'Playfair Display', serif; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; text-align: center; border: none; transition: all 0.2s; box-shadow: 0 4px 15px rgba(251, 191, 36, 0.2); }
+        .btn-primary:active { transform: scale(0.96); filter: brightness(0.9); }
+
+        .type-input { width: 100%; background: rgba(0,0,0,0.4); border: 1px solid var(--accent-amber); color: var(--accent-gold); padding: 1.2rem; border-radius: 4px; font-family: 'Caveat', cursive; text-align: center; margin-bottom: 1rem; font-size: 1.8rem; font-weight: bold; box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);}
+        .type-input:focus { outline: none; box-shadow: inset 0 2px 10px rgba(0,0,0,0.3), 0 0 0 3px rgba(251, 191, 36, 0.3); }
+        .type-input.error { border-color: var(--accent-rose); color: var(--accent-rose); animation: shake 0.4s; }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+        #confetti { position: absolute; inset: 0; pointer-events: none; z-index: 100; }
+        .hide { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div id="mobile-app">
+        <header class="p-5 flex flex-col">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-[var(--accent-purple)]/20 border border-[var(--accent-purple)]/50 flex items-center justify-center"><i class="fas fa-hat-wizard text-[var(--accent-amber)]"></i></div>
+                    <div>
+                        <h1 class="font-magic font-bold text-lg leading-tight text-[var(--accent-amber)]">Spellbook</h1>
+                        <p class="text-[10px] text-[var(--text-muted)] font-ui uppercase tracking-widest font-bold">Homework Protocol</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <span id="q-counter" class="text-xs font-ui text-[var(--accent-amber)] font-bold tracking-widest bg-[var(--accent-amber)]/10 border border-[var(--accent-amber)]/20 px-2 py-1 rounded">01/15</span>
+                </div>
+            </div>
+            <div class="progress-track">
+                <div id="progress" class="progress-fill" style="width: 0%;"></div>
+            </div>
+        </header>
+
+        <main id="app-main" class="flex flex-col justify-center">
+            <div id="screen-welcome" class="text-center question-card border-t-2 border-[var(--accent-amber)]">
+                <div class="w-20 h-20 bg-[var(--bg-lofi)] rounded-full flex items-center justify-center mx-auto mb-6 border border-[var(--border-soft)] shadow-inner">
+                    <i class="fas fa-book-open text-3xl text-[var(--accent-amber)]"></i>
+                </div>
+                <h2 class="text-2xl font-magic font-bold mb-3 text-white">Review the Spells</h2>
+                <p class="text-[15px] text-[var(--text-muted)] mb-8 leading-relaxed font-ui">Master the verbs 'To Be' and 'To Have' to cast perfect descriptions.</p>
+                <div class="text-left bg-[var(--bg-lofi)] p-4 rounded-lg mb-8 border border-[var(--border-soft)]">
+                    <p class="text-[11px] font-ui text-[var(--accent-matcha)] font-bold tracking-wide"><i class="fas fa-check-circle mr-2"></i> Fix: "He has a map."</p>
+                    <p class="text-[11px] font-ui text-[var(--accent-rose)] mt-3 font-bold tracking-wide"><i class="fas fa-times-circle mr-2"></i> Bug: "He have a map."</p>
+                </div>
+                <button onclick="startGame()" class="btn-primary">Open Spellbook</button>
+            </div>
+
+            <div id="screen-quiz" class="hide flex flex-col justify-center h-full"></div>
+
+            <div id="screen-result" class="hide text-center question-card border-t-2 border-[var(--accent-matcha)]">
+                <div class="w-24 h-24 bg-[var(--accent-matcha)]/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-[var(--accent-matcha)]/50 shadow-[0_0_30px_rgba(52,211,153,0.3)]">
+                    <i class="fas fa-star text-5xl text-[var(--accent-matcha)]"></i>
+                </div>
+                <h2 class="text-3xl font-magic font-bold text-white mb-2">Magic Mastered</h2>
+                <p class="text-[15px] text-[var(--text-muted)] mb-8">You have successfully cast 15 correct spells and learned the Magic 'S' rule.</p>
+                
+                <div class="bg-[var(--bg-lofi)] p-6 rounded-xl border border-[var(--border-soft)] mb-8">
+                    <p class="text-[11px] uppercase font-bold text-[var(--text-muted)] tracking-widest font-ui mb-2">Spell Accuracy</p>
+                    <p id="final-score" class="text-5xl font-magic font-bold text-[var(--accent-amber)]">100%</p>
+                </div>
+            </div>
+        </main>
+
+        <canvas id="confetti"></canvas>
+    </div>
+
+    <script>
+        const exercises = [
+            { type: 'ab', context: 'Appearance', bug: 'He are fat.', clean: 'He is fat.' },
+            { type: 'ab', context: 'The Magic S', bug: 'She have blonde hair.', clean: 'She has blonde hair.' },
+            { type: 'input', context: 'Vocabulary', corrupted: 'A wizard wears a [ c k l o a ].', expected: 'cloak', hint: 'Unscramble the word' },
+            { type: 'input', context: 'To Be', corrupted: 'They [is / are] very strange.', expected: 'are', hint: 'Type the verb' },
+            { type: 'ab', context: 'Animals', bug: 'The cat reading a map.', clean: 'The cat is reading a map.' },
+            { type: 'input', context: 'Possession', corrupted: '[I / have / has] blue eyes.', expected: 'I have', hint: 'Type the subject + verb' },
+            { type: 'ab', context: 'The Magic S', bug: 'Mr. Dursley have a mustache.', clean: 'Mr. Dursley has a mustache.' },
+            { type: 'input', context: 'To Be', corrupted: 'Mrs. Dursley [have / is] thin.', expected: 'is', hint: 'Type the correct verb' },
+            { type: 'ab', context: 'Possession', bug: 'We has a normal life.', clean: 'We have a normal life.' },
+            { type: 'input', context: 'The Magic S', corrupted: 'The cat [have / has] a map.', expected: 'has', hint: 'Type the correct verb' },
+            { type: 'ab', context: 'Appearance', bug: 'I is normal.', clean: 'I am normal.' },
+            { type: 'input', context: 'Vocabulary', corrupted: 'An animal that flies at night is an [ w o l ].', expected: 'owl', hint: 'Unscramble the word' },
+            { type: 'ab', context: 'The Magic S', bug: 'Dudley have toys.', clean: 'Dudley has toys.' },
+            { type: 'input', context: 'To Be', corrupted: 'The people [is / are] wearing cloaks.', expected: 'are', hint: 'Type the correct verb' },
+            { type: 'input', context: 'Possession', corrupted: '[She / has / a long neck].', expected: 'She has a long neck', hint: 'Order the words' }
+        ];
+
+        let state = { current: 0, errors: 0 };
+
+        function startGame() {
+            document.getElementById('screen-welcome').classList.add('hide');
+            document.getElementById('screen-quiz').classList.remove('hide');
+            renderQuestion();
+        }
+
+        function updateProgress() {
+            const perc = (state.current / exercises.length) * 100;
+            document.getElementById('progress').style.width = perc + '%';
+            document.getElementById('q-counter').innerText = `${String(state.current + 1).padStart(2, '0')}/${exercises.length}`;
+        }
+
+        function shuffleArray(array) {
+            let curId = array.length;
+            while (0 !== curId) { let randId = Math.floor(Math.random() * curId); curId -= 1; let tmp = array[curId]; array[curId] = array[randId]; array[randId] = tmp; }
+            return array;
+        }
+
+        function renderQuestion() {
+            if (state.current >= exercises.length) return endHomework();
+            
+            updateProgress();
+            const ex = exercises[state.current];
+            const container = document.getElementById('screen-quiz');
+            
+            let html = `
+                <div class="question-card" id="q-card">
+                    <p class="text-[10px] text-[var(--accent-purple)] font-bold uppercase tracking-widest font-ui mb-5 bg-[var(--bg-lofi)] inline-block px-3 py-1 rounded border border-[var(--border-soft)]"><i class="fas fa-bookmark mr-2"></i>${ex.context}</p>
+            `;
+
+            if (ex.type === 'ab') {
+                const opts = shuffleArray([
+                    { text: ex.clean, isCorrect: true },
+                    { text: ex.bug, isCorrect: false }
+                ]);
+
+                html += `
+                    <h2 class="text-xl font-magic font-bold text-white mb-6 leading-snug">Select the correct spell:</h2>
+                    <div class="space-y-3" id="ab-opts">
+                        <button onclick="handleAB(this, ${opts[0].isCorrect})" class="opt-btn"><span>${opts[0].text}</span><i class="fas fa-circle text-[var(--border-soft)] text-xs icon-status"></i></button>
+                        <button onclick="handleAB(this, ${opts[1].isCorrect})" class="opt-btn"><span>${opts[1].text}</span><i class="fas fa-circle text-[var(--border-soft)] text-xs icon-status"></i></button>
+                    </div>
+                `;
+            } else if (ex.type === 'input') {
+                html += `
+                    <h2 class="text-xl font-magic font-bold text-white mb-4 leading-snug">Repair the text:</h2>
+                    <p class="text-[var(--accent-rose)] font-handwriting text-2xl mb-6 bg-[var(--bg-lofi)] p-4 rounded text-center border border-[var(--border-soft)] shadow-inner leading-relaxed">${ex.corrupted}</p>
+                    <input type="text" id="type-ans" class="type-input" placeholder="${ex.hint}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                    <button id="btn-submit" onclick="handleInput('${esc(ex.expected)}')" class="btn-primary mt-2">Cast Spell</button>
+                `;
+            }
+
+            html += `</div>`;
+            container.innerHTML = html;
+
+            if (ex.type === 'input') {
+                const inputEl = document.getElementById('type-ans');
+                inputEl.focus();
+                inputEl.addEventListener('keypress', function(e) { if (e.key === 'Enter') document.getElementById('btn-submit').click(); });
+            }
+        }
+
+        function handleAB(btn, isCorrect) {
+            const buttons = document.getElementById('ab-opts').querySelectorAll('button');
+            buttons.forEach(b => { b.onclick = null; b.style.opacity = '0.6'; });
+            btn.style.opacity = '1';
+
+            const icon = btn.querySelector('.icon-status');
+
+            if (isCorrect) {
+                btn.classList.add('selected-correct');
+                icon.className = 'fas fa-check-circle text-[var(--accent-matcha)] text-xl icon-status drop-shadow-[0_0_5px_rgba(52,211,153,0.5)]';
+                setTimeout(nextQuestion, 700);
+            } else {
+                btn.classList.add('selected-error');
+                icon.className = 'fas fa-times-circle text-[var(--accent-rose)] text-xl icon-status';
+                state.errors++;
+                buttons.forEach(b => {
+                    if(!b.classList.contains('selected-error')) {
+                        b.classList.add('selected-correct'); b.style.opacity = '1';
+                        b.querySelector('.icon-status').className = 'fas fa-check-circle text-[var(--accent-matcha)] text-xl icon-status';
+                    }
+                });
+                setTimeout(nextQuestion, 1800);
+            }
+        }
+
+        function handleInput(expected) {
+            const input = document.getElementById('type-ans');
+            const val = input.value.trim().toLowerCase();
+            const btn = document.getElementById('btn-submit');
+
+            if (val === expected.toLowerCase()) {
+                input.style.borderColor = 'var(--accent-matcha)';
+                input.style.color = 'var(--bg-lofi)';
+                input.style.backgroundColor = 'var(--accent-matcha)';
+                btn.style.background = 'var(--accent-matcha)';
+                btn.innerHTML = '<i class="fas fa-check"></i> Verified';
+                setTimeout(nextQuestion, 700);
+            } else {
+                input.classList.remove('error');
+                void input.offsetWidth;
+                input.classList.add('error');
+                input.value = '';
+                input.placeholder = "Try again!";
+                state.errors++;
+            }
+        }
+
+        function nextQuestion() { state.current++; renderQuestion(); }
+
+        function endHomework() {
+            document.getElementById('screen-quiz').classList.add('hide');
+            document.getElementById('screen-result').classList.remove('hide');
+            document.getElementById('progress').style.width = '100%';
+            document.getElementById('q-counter').innerText = 'DONE';
+
+            const accuracy = Math.max(0, 100 - (state.errors * 5));
+            const scoreEl = document.getElementById('final-score');
+            scoreEl.innerText = `${accuracy}%`;
+            
+            if(accuracy < 70) {
+                scoreEl.className = "text-5xl font-magic font-bold text-[var(--accent-rose)]";
+                document.querySelector('.fa-star').className = "fas fa-skull text-5xl text-[var(--accent-rose)]";
+                document.querySelector('.fa-star').parentElement.className = "w-24 h-24 bg-[var(--accent-rose)]/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-[var(--accent-rose)]/50 shadow-[0_0_30px_rgba(244,63,94,0.3)]";
+            } else if(accuracy === 100) {
+                scoreEl.className = "text-5xl font-magic font-bold text-[var(--accent-matcha)]";
+            }
+
+            shootConfetti();
+        }
+
+        function shootConfetti() {
+            const cCanvas = document.getElementById('confetti'); const cCtx = cCanvas.getContext('2d');
+            cCanvas.width = document.getElementById('mobile-app').offsetWidth; cCanvas.height = document.getElementById('mobile-app').offsetHeight;
+            const pieces = []; const colors = ['#fbbf24', '#c084fc', '#fef3c7', '#ffffff']; 
+            for(let i=0; i<50; i++) pieces.push({ x: cCanvas.width/2, y: cCanvas.height/2, vx: (Math.random()-0.5)*15, vy: (Math.random()-1)*15-5, size: Math.random()*6+3, color: colors[Math.floor(Math.random()*colors.length)], rot: Math.random()*360, rotSpeed: (Math.random()-0.5)*10 });
+            function animateC() {
+                cCtx.clearRect(0, 0, cCanvas.width, cCanvas.height); let active = false;
+                pieces.forEach(p => {
+                    p.x += p.vx; p.y += p.vy; p.vy += 0.5; p.rot += p.rotSpeed; if(p.y < cCanvas.height) active = true;
+                    cCtx.save(); cCtx.translate(p.x, p.y); cCtx.rotate(p.rot*Math.PI/180); cCtx.fillStyle = p.color; 
+                    cCtx.fillRect(-p.size/2, -p.size/2, p.size, p.size); cCtx.restore();
+                });
+                if(active) requestAnimationFrame(animateC); else cCtx.clearRect(0, 0, cCanvas.width, cCanvas.height);
+            }
+            animateC();
+        }
+    </script>
+</body>
+</html>
